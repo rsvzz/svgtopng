@@ -1,9 +1,14 @@
 #include <gtk-4.0/gtk/gtk.h>
 #include <libadwaita-1/adwaita.h>
+
+#include "../inc/gtk4/header_bar.hpp"
+
 #include <iostream>
+#include <memory>
 
-static GtkWidget *window = nullptr;
 
+static GtkWidget *window = nullptr,  *header = nullptr;
+static std::shared_ptr<HeaderBar> c_hbar = nullptr;
 static void activate(GtkApplication *app, gpointer user_data)
 {
     if (window != NULL)
@@ -14,13 +19,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     window = adw_application_window_new(app);
 
     GtkWidget *toolbar_view = adw_toolbar_view_new();
-    GtkWidget *header = adw_header_bar_new();
-
-    adw_header_bar_set_title_widget(ADW_HEADER_BAR(header), gtk_label_new("Convert SVG to PNG"));
-    // button for header
-    GtkWidget *w_open = gtk_button_new_from_icon_name("folder-symbolic");
-    adw_header_bar_pack_start(ADW_HEADER_BAR(header), w_open);
-    // end button for header
+    header = adw_header_bar_new();
+    c_hbar = std::make_shared<HeaderBar>(window, GTK_WIDGET(header));
     
     adw_toolbar_view_add_top_bar(ADW_TOOLBAR_VIEW(toolbar_view), header);
     gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
