@@ -26,7 +26,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(window), GTK_WIDGET(toolbar_view));
 
-    adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view), gtk_label_new("this is example :)")); // Content intro
+    adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view),GTK_WIDGET(c_hbar->get_box_content())); // Content intro
 
     gtk_window_present(GTK_WINDOW(window));
 }

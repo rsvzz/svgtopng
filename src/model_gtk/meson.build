@@ -1,6 +1,8 @@
 inc_src = include_directories('../../src', '../../inc')
 src_files = files([
-    'header_bar.cpp'
+    'header_bar.cpp',
+    'read_file_st.cpp',
+    'content_box.cpp'
 ])
 
 gtk_dep = dependency('gtk4')
