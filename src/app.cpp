@@ -25,8 +25,9 @@ static void activate(GtkApplication *app, gpointer user_data)
     adw_toolbar_view_add_top_bar(ADW_TOOLBAR_VIEW(toolbar_view), header);
     gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(window), GTK_WIDGET(toolbar_view));
-
-    adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view),GTK_WIDGET(c_hbar->get_box_content())); // Content intro
+    GtkWidget *scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(c_hbar->get_box_content()));
+    adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view), scroll); // Content intro
 
     gtk_window_present(GTK_WINDOW(window));
 }

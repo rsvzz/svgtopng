@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "/usr/include/gtk-4.0/",
                 "/usr/include/libadwaita-1/",
-                "/usr/include/glib-2.0/"
+                "/usr/include/glib-2.0/",
+                "/usr/include/gdk-pixbuf-2.0"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
