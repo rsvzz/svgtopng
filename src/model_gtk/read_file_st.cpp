@@ -13,10 +13,11 @@ stack<ItemFile *> *ReadFileSt::get_files_path(string path)
 {
 
     std::stack<ItemFile *> *file_list = new std::stack<ItemFile *>;
-    for (const auto &file : std::filesystem::recursive_directory_iterator(path))
+    for (const auto &file : std::filesystem::directory_iterator(path)) // dont need recursive_directory_iterator
     {
         if (!file.is_directory() && file.path().extension().string() == ".svg")
         {
+            //g_print("Item Directory : %s \n", file.path().c_str());
             auto item = item_file_new();
             item_file_set_data(item, file.path().c_str(), file.path().filename().c_str(), file.path().extension().c_str());
             file_list->push(item);

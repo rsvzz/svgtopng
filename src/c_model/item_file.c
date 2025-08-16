@@ -4,6 +4,7 @@ struct _ItemFile
 {
     GObject parent_instance;
     char *path, *name, *extention;
+    STATUS status;
 };
 
 G_DEFINE_TYPE(ItemFile, item_file, G_TYPE_OBJECT);
@@ -71,8 +72,17 @@ void item_file_set_data(ItemFile *self, const char *path, const char *name, cons
 
     self->extention = malloc(strlen(extention) + 1);
     strcpy(self->extention, extention);
+    
+    self->status = ACTIVE;
 }
 
 char *item_file_get_path(ItemFile *self) { return self->path; }
 char *item_file_get_name(ItemFile *self) { return self->name; }
 char *item_file_get_extention(ItemFile *self) { return self->extention; }
+
+STATUS item_file_get_check(ItemFile* self){
+    return self->status;
+}
+void item_file_set_check(ItemFile* self, STATUS _status){
+    self->status = _status;
+}
