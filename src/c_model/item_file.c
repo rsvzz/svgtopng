@@ -73,7 +73,7 @@ void item_file_set_data(ItemFile *self, const char *path, const char *name, cons
     self->extention = malloc(strlen(extention) + 1);
     strcpy(self->extention, extention);
     
-    self->status = ACTIVE;
+    self->status = INACTIVE;
 }
 
 char *item_file_get_path(ItemFile *self) { return self->path; }

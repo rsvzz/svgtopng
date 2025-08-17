@@ -81,7 +81,7 @@ void HeaderBar::on_clicked_open_header_bar(GtkWidget *button, gpointer data)
 void HeaderBar::on_clicked_select_header_bar(GtkWidget *button, gpointer data)
 {
 
-    auto bx_grid = static_cast<ContentBox *>(data); // catch gpointer
+    auto bx_grid = static_cast<ContentBox *>(data); // catch gpointer from C++
 
     GtkWidget *grid = bx_grid->get_content_items();
 
@@ -94,21 +94,18 @@ void HeaderBar::on_clicked_select_header_bar(GtkWidget *button, gpointer data)
         return;
 
     GtkSelectionModel *selection_model = gtk_grid_view_get_model(GTK_GRID_VIEW(grid));
-    g_print("click selected :) \n");
     GListModel *model = gtk_no_selection_get_model(GTK_NO_SELECTION(selection_model));
-
     // GListStore *list_store = G_LIST_STORE(model);
     guint n_items = g_list_model_get_n_items(model);
-    g_print("click selected :) \n");
     for (guint i = 0; i < n_items; ++i)
     {
         gpointer item = g_list_model_get_item(model, i);
-        ItemFile *my_item = (ItemFile *)(item); // o cast adecuado
-
-        // Aquí puedes acceder a los datos del item
+        ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
+        //item_file_set_check(my_item, ACTIVE);
         const gchar *name = item_file_get_name(my_item);
-        g_print("item select : %s \n", name);
-        // g_object_unref(item); // importante: liberar el item después de usarlo
+        STATUS status = item_file_get_check(my_item);
+        g_print("item select : %s status : %d \n", name, status);
+
     }
 }
 
@@ -141,15 +138,6 @@ void HeaderBar::set_box_clean_child()
             child = nullptr;
         }
     }
-    /*
-    while (child != NULL)
-    {
-        GtkWidget *aux = gtk_widget_get_next_sibling(child);
-        gtk_widget_unparent(child);
-        g_print("clear clean gridview :) \n");
-        child = aux;
-    }
-    */
 }
 
 GtkWidget *HeaderBar::get_btn_select_all()

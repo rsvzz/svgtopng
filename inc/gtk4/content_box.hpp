@@ -4,8 +4,9 @@
 #include <iostream>
 #include <stack>
 
-extern "C" {
-    #include "c_model/item_file.h"
+extern "C"
+{
+#include "c_model/item_file.h"
 }
 
 class ContentBox
@@ -17,6 +18,6 @@ private:
 public:
     ContentBox(std::stack<ItemFile *> *);
     ~ContentBox();
-
+    static void on_checkbutton_toggled(GtkCheckButton *, gpointer);
     GtkWidget *get_content_items();
 };

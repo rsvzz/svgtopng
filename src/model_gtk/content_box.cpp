@@ -20,10 +20,12 @@ static void bind_item(GtkListItemFactory *factory, GtkListItem *item, gpointer u
     ItemFile *item_f = (ItemFile *)gtk_list_item_get_item(item);
     GtkWidget *box = gtk_list_item_get_child(item);
     GtkWidget *picture = gtk_widget_get_first_child(box);
+    GtkWidget *check = gtk_widget_get_next_sibling(picture);
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(item_file_get_path(item_f), NULL);
     GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pixbuf, 40, 40, GDK_INTERP_BILINEAR);
     gtk_picture_set_pixbuf(GTK_PICTURE(picture), scaled);
 
+    g_signal_connect(check, "toggled", G_CALLBACK(&ContentBox::on_checkbutton_toggled), item_f);
     //item_file_set_check(item_f, INACTIVE);
     //GFile *file = g_file_new_for_path(item_file_get_path(item_f));
     //gtk_picture_set_file(GTK_PICTURE(picture), file);
@@ -62,4 +64,13 @@ ContentBox::~ContentBox()
 GtkWidget *ContentBox::get_content_items()
 {
     return content;
+}
+
+void ContentBox::on_checkbutton_toggled(GtkCheckButton *check_button, gpointer user_data) {
+    gboolean active = gtk_check_button_get_active(check_button);
+    ItemFile *item = (ItemFile*)user_data;
+    if(active)
+        item_file_set_check(item, ACTIVE);
+    else
+        item_file_set_check(item, INACTIVE);
 }
