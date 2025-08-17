@@ -24,8 +24,8 @@ static void bind_item(GtkListItemFactory *factory, GtkListItem *item, gpointer u
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(item_file_get_path(item_f), NULL);
     GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pixbuf, 40, 40, GDK_INTERP_BILINEAR);
     gtk_picture_set_pixbuf(GTK_PICTURE(picture), scaled);
-
     g_signal_connect(check, "toggled", G_CALLBACK(&ContentBox::on_checkbutton_toggled), item_f);
+    item_file_set_check_button(item_f, GTK_CHECK_BUTTON(check));
     //item_file_set_check(item_f, INACTIVE);
     //GFile *file = g_file_new_for_path(item_file_get_path(item_f));
     //gtk_picture_set_file(GTK_PICTURE(picture), file);
@@ -34,7 +34,7 @@ static void bind_item(GtkListItemFactory *factory, GtkListItem *item, gpointer u
 ContentBox::ContentBox(std::stack<ItemFile *> *st_items)
 {
     GListStore *store = g_list_store_new(ITEM_FILE_TYPE);
-
+    status = true;
     GtkListItemFactory *factory = gtk_signal_list_item_factory_new();
     g_signal_connect(factory, "setup", G_CALLBACK(setup_item), NULL);
     g_signal_connect(factory, "bind", G_CALLBACK(bind_item), NULL);
@@ -74,3 +74,6 @@ void ContentBox::on_checkbutton_toggled(GtkCheckButton *check_button, gpointer u
     else
         item_file_set_check(item, INACTIVE);
 }
+
+bool ContentBox::get_status(){ return status;}
+void ContentBox::set_status(bool _status) { status = _status;}

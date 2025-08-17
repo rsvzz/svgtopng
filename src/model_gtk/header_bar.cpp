@@ -2,15 +2,16 @@
 #include "../../inc/read_file_st.hpp"
 #include <glib-2.0/glib.h>
 
-std::shared_ptr<ContentBox> HeaderBar::get_content_item_grid(){
+std::shared_ptr<ContentBox> HeaderBar::get_content_item_grid()
+{
     return cbox;
 }
 
-void HeaderBar::set_content_item_grid(std::stack<ItemFile*> *items){
+void HeaderBar::set_content_item_grid(std::stack<ItemFile *> *items)
+{
     cbox.reset();
     cbox = std::make_shared<ContentBox>(items);
 }
-
 
 static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointer user_data)
 {
@@ -93,20 +94,27 @@ void HeaderBar::on_clicked_select_header_bar(GtkWidget *button, gpointer data)
     if (!GTK_IS_GRID_VIEW(grid))
         return;
 
+    // find checked
     GtkSelectionModel *selection_model = gtk_grid_view_get_model(GTK_GRID_VIEW(grid));
     GListModel *model = gtk_no_selection_get_model(GTK_NO_SELECTION(selection_model));
     // GListStore *list_store = G_LIST_STORE(model);
     guint n_items = g_list_model_get_n_items(model);
+    gboolean status = FALSE;
+
+    if (bx_grid->get_status())
+        status = TRUE;
+    else
+        status = FALSE;
+
     for (guint i = 0; i < n_items; ++i)
     {
         gpointer item = g_list_model_get_item(model, i);
         ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
-        //item_file_set_check(my_item, ACTIVE);
-        const gchar *name = item_file_get_name(my_item);
-        STATUS status = item_file_get_check(my_item);
-        g_print("item select : %s status : %d \n", name, status);
-
+        GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
+        gtk_check_button_set_active(checkbutton, status);
     }
+    
+    bx_grid->set_status(!bx_grid->get_status());
 }
 
 GtkWindow *HeaderBar::get_parent() { return GTK_WINDOW(parent); }

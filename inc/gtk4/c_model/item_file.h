@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gtk-4.0/gtk/gtk.h>
 #include <glib-2.0/glib-object.h>
 
 #define ITEM_FILE_TYPE item_file_get_type()
@@ -25,3 +26,5 @@ char* item_file_get_extention(ItemFile*);
 
 STATUS item_file_get_check(ItemFile*);
 void item_file_set_check(ItemFile*, STATUS);
+GtkCheckButton *item_file_get_check_button(ItemFile*);
+void *item_file_set_check_button(ItemFile*, GtkCheckButton*);

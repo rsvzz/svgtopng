@@ -4,6 +4,7 @@ struct _ItemFile
 {
     GObject parent_instance;
     char *path, *name, *extention;
+    GtkCheckButton *checkbtn;
     STATUS status;
 };
 
@@ -85,4 +86,11 @@ STATUS item_file_get_check(ItemFile* self){
 }
 void item_file_set_check(ItemFile* self, STATUS _status){
     self->status = _status;
+}
+
+GtkCheckButton *item_file_get_check_button(ItemFile *self){
+    return self->checkbtn;
+}
+void *item_file_set_check_button(ItemFile *self, GtkCheckButton *checkbutton){
+    self->checkbtn = checkbutton;
 }

@@ -14,10 +14,13 @@ class ContentBox
 private:
     /* data */
     GtkWidget *content;
+    bool status;
 
 public:
     ContentBox(std::stack<ItemFile *> *);
     ~ContentBox();
     static void on_checkbutton_toggled(GtkCheckButton *, gpointer);
     GtkWidget *get_content_items();
+    void set_status(bool);
+    bool get_status();
 };
