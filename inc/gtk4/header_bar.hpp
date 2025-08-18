@@ -4,8 +4,9 @@
 #include <libadwaita-1/adwaita.h>
 #include <glib-2.0/glib.h>
 #include "gtk4/content_box.hpp"
-extern "C" {
-    #include "c_model/item_file.h"
+extern "C"
+{
+#include "c_model/item_file.h"
 }
 #include <iostream>
 #include <memory>
@@ -16,9 +17,8 @@ class HeaderBar
 {
 private:
     /* data */
-    GtkWidget *header, *parent, *hb_open, *hb_select_all, *bx_content;
-    gulong id_select_hb;
-    
+    GtkWidget *header, *parent, *hb_open, *hb_select_all, *hb_start, *bx_content;
+    gulong id_select_hb, id_start_hb;
     /// @brief signal open button of header_bar
     /// @param
     /// @param
@@ -37,11 +37,15 @@ public:
     void set_box_clean_child();
     GtkWidget *get_btn_select_all();
     /// @brief signal for find select items
-    /// @param  
-    /// @param  
+    /// @param
+    /// @param
     static void on_clicked_select_header_bar(GtkWidget *, gpointer);
     gulong get_select_hb_id_signal();
     void set_select_hb_id_signal(gulong);
+    gulong get_start_hb_id_signal();
+    void set_start_hb_id_signal(gulong);
     std::shared_ptr<ContentBox> get_content_item_grid();
-    void set_content_item_grid(std::stack<ItemFile*> *);
+    void set_content_item_grid(std::stack<ItemFile *> *);
+
+    GtkWidget* get_start_button();
 };

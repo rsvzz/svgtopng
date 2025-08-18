@@ -10,7 +10,7 @@ std::shared_ptr<ContentBox> HeaderBar::get_content_item_grid()
 void HeaderBar::set_content_item_grid(std::stack<ItemFile *> *items)
 {
     cbox.reset();
-    cbox = std::make_shared<ContentBox>(items);
+    cbox = std::make_shared<ContentBox>(items, hb_select_all);
 }
 
 static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointer user_data)
@@ -31,6 +31,8 @@ static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointe
                 my_obj->set_content_item_grid(st_file); // std::make_shared<ContentBox>(st_file); // send gpointer with new
                 std::shared_ptr<ContentBox> content = my_obj->get_content_item_grid();
                 gtk_box_append(box, content->get_content_items());
+                content->set_id_start_hb(my_obj->get_start_button(), my_obj->get_start_hb_id_signal());
+                my_obj->set_start_hb_id_signal(content->get_id_start_hb());
                 // select all items gridview
                 GtkWidget *btn_select = my_obj->get_btn_select_all();
                 gtk_widget_set_visible(btn_select, TRUE);
@@ -57,7 +59,8 @@ HeaderBar::HeaderBar(GtkWidget *_parent, GtkWidget *_header) : parent(_parent), 
     adw_header_bar_set_title_widget(ADW_HEADER_BAR(header), gtk_label_new("Convert SVG to PNG"));
     // button for header
     hb_open = gtk_button_new_from_icon_name("folder-symbolic");
-    hb_select_all = gtk_button_new_from_icon_name("view-grid-symbolic");
+    hb_select_all = gtk_button_new_from_icon_name("checkbox-checked-symbolic");
+    hb_start = gtk_button_new_from_icon_name("preferences-system-symbolic");
     gtk_widget_set_visible(hb_select_all, FALSE);
     id_select_hb = 0; // init
     //
@@ -65,6 +68,7 @@ HeaderBar::HeaderBar(GtkWidget *_parent, GtkWidget *_header) : parent(_parent), 
     g_signal_connect(hb_open, "clicked", G_CALLBACK(&HeaderBar::on_clicked_open_header_bar), static_cast<gpointer>(this)); // send gpointer
     adw_header_bar_pack_start(ADW_HEADER_BAR(header), hb_open);
     adw_header_bar_pack_start(ADW_HEADER_BAR(header), hb_select_all);
+    adw_header_bar_pack_end(ADW_HEADER_BAR(header), hb_start);
 }
 
 HeaderBar::~HeaderBar() {}
@@ -100,21 +104,30 @@ void HeaderBar::on_clicked_select_header_bar(GtkWidget *button, gpointer data)
     // GListStore *list_store = G_LIST_STORE(model);
     guint n_items = g_list_model_get_n_items(model);
     gboolean status = FALSE;
-
-    if (bx_grid->get_status())
-        status = TRUE;
-    else
-        status = FALSE;
-
-    for (guint i = 0; i < n_items; ++i)
+    if (n_items > 0)
     {
-        gpointer item = g_list_model_get_item(model, i);
-        ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
-        GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
-        gtk_check_button_set_active(checkbutton, status);
+
+        if (bx_grid->get_status())
+        {
+            gtk_button_set_icon_name(GTK_BUTTON(button), "checkbox-symbolic");
+            status = TRUE;
+        }
+        else
+        {
+
+            gtk_button_set_icon_name(GTK_BUTTON(button), "checkbox-checked-symbolic");
+            status = FALSE;
+        }
+        for (guint i = 0; i < n_items; ++i)
+        {
+            gpointer item = g_list_model_get_item(model, i);
+            ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
+            GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
+            gtk_check_button_set_active(checkbutton, status);
+        }
+
+        bx_grid->set_status(!bx_grid->get_status());
     }
-    
-    bx_grid->set_status(!bx_grid->get_status());
 }
 
 GtkWindow *HeaderBar::get_parent() { return GTK_WINDOW(parent); }
@@ -158,3 +171,11 @@ void HeaderBar::set_select_hb_id_signal(gulong id)
 {
     id_select_hb = id;
 }
+
+gulong HeaderBar::get_start_hb_id_signal() { return id_start_hb; }
+void HeaderBar::set_start_hb_id_signal(gulong id)
+{
+    id_start_hb = id;
+}
+
+GtkWidget *HeaderBar::get_start_button(){return hb_start;}
