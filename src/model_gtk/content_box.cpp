@@ -1,13 +1,18 @@
 #include "../../inc/gtk4/content_box.hpp"
+#include "gtk/gtk.h"
+extern "C"{
+    #include "gtk4/c_model/item_file.h"
+    #include "gtk4/c_model/svg_draw.h"
+}
 #include <gtk-4.0/gdk/gdk.h>
 
 static void setup_item(GtkListItemFactory *factory, GtkListItem *item, gpointer user_data)
 {
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    GtkWidget *picture = gtk_picture_new();
+    GtkWidget *picture = gtk_image_new();
     gtk_widget_set_size_request(picture, 40, 40);
     gtk_widget_set_margin_top(picture, 5);
-    gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(picture), true);
+    //gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(picture), true);
 
     GtkWidget *check = gtk_check_button_new();
     gtk_box_append(GTK_BOX(box), picture);
@@ -21,9 +26,14 @@ static void bind_item(GtkListItemFactory *factory, GtkListItem *item, gpointer u
     GtkWidget *box = gtk_list_item_get_child(item);
     GtkWidget *picture = gtk_widget_get_first_child(box);
     GtkWidget *check = gtk_widget_get_next_sibling(picture);
-    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(item_file_get_path(item_f), NULL);
-    GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pixbuf, 40, 40, GDK_INTERP_BILINEAR);
-    gtk_picture_set_pixbuf(GTK_PICTURE(picture), scaled);
+    //GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(item_file_get_path(item_f), NULL);
+    //GdkPixbuf *scaled = gdk_pixbuf_scale_simple(pixbuf, 40, 40, GDK_INTERP_BILINEAR);
+
+    SvgDraw *draw = svg_draw_new();
+    svg_draw_set_draw_width_and_height(draw, 40, 40);
+    GdkTexture *texture = svg_draw_get_file_svg_to_draw(draw, item_file_get_path(item_f));
+    gtk_image_set_from_paintable(GTK_IMAGE(picture), GDK_PAINTABLE(texture));
+    //gtk_picture_set_pixbuf(GTK_PICTURE(picture), scaled);
     g_signal_connect(check, "toggled", G_CALLBACK(&ContentBox::on_checkbutton_toggled), item_f);
     item_file_set_check_button(item_f, GTK_CHECK_BUTTON(check));
     // item_file_set_check(item_f, INACTIVE);
@@ -55,7 +65,7 @@ ContentBox::ContentBox(std::stack<ItemFile *> *st_items, GtkWidget* select_btn)
     gtk_widget_set_vexpand(content, TRUE);
     gtk_widget_set_hexpand(content, TRUE);
     gtk_grid_view_set_min_columns(GTK_GRID_VIEW(content), 4);
-    gtk_grid_view_set_max_columns(GTK_GRID_VIEW(content), 6);
+    gtk_grid_view_set_max_columns(GTK_GRID_VIEW(content), 10);
 }
 
 ContentBox::~ContentBox()

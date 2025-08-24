@@ -27,4 +27,4 @@ char* item_file_get_extention(ItemFile*);
 STATUS item_file_get_check(ItemFile*);
 void item_file_set_check(ItemFile*, STATUS);
 GtkCheckButton *item_file_get_check_button(ItemFile*);
-void *item_file_set_check_button(ItemFile*, GtkCheckButton*);
+void item_file_set_check_button(ItemFile*, GtkCheckButton*);
