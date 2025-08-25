@@ -10,7 +10,7 @@ std::shared_ptr<ContentBox> HeaderBar::get_content_item_grid()
 void HeaderBar::set_content_item_grid(std::stack<ItemFile *> *items)
 {
     cbox.reset();
-    cbox = std::make_shared<ContentBox>(items, hb_select_all);
+    cbox = std::make_shared<ContentBox>(items, hb_select_all, parent);
 }
 
 static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointer user_data)
