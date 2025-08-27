@@ -1,7 +1,8 @@
 #include "../../inc/gtk4/content_box.hpp"
 #include "gtk/gtk.h"
 #include <memory>
-extern "C" {
+extern "C"
+{
 #include "gtk4/c_model/item_file.h"
 #include "gtk4/c_model/svg_draw.h"
 }
@@ -9,7 +10,8 @@ extern "C" {
 #include "../../inc/gtk4/setting_win.hpp"
 
 static void setup_item(GtkListItemFactory *factory, GtkListItem *item,
-                       gpointer user_data) {
+                       gpointer user_data)
+{
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
   GtkWidget *picture = gtk_image_new();
   gtk_widget_set_size_request(picture, 40, 40);
@@ -23,7 +25,8 @@ static void setup_item(GtkListItemFactory *factory, GtkListItem *item,
 }
 
 static void bind_item(GtkListItemFactory *factory, GtkListItem *item,
-                      gpointer user_data) {
+                      gpointer user_data)
+{
   ItemFile *item_f = (ItemFile *)gtk_list_item_get_item(item);
   GtkWidget *box = gtk_list_item_get_child(item);
   GtkWidget *picture = gtk_widget_get_first_child(box);
@@ -47,7 +50,8 @@ static void bind_item(GtkListItemFactory *factory, GtkListItem *item,
 }
 
 ContentBox::ContentBox(std::stack<ItemFile *> *st_items, GtkWidget *select_btn,
-                       GtkWidget *_parent) {
+                       GtkWidget *_parent)
+{
   GListStore *store = g_list_store_new(ITEM_FILE_TYPE);
   status = true;
   hb_select = select_btn;
@@ -56,10 +60,12 @@ ContentBox::ContentBox(std::stack<ItemFile *> *st_items, GtkWidget *select_btn,
   g_signal_connect(factory, "setup", G_CALLBACK(setup_item), NULL);
   g_signal_connect(factory, "bind", G_CALLBACK(bind_item), NULL);
 
-  while (!st_items->empty()) {
+  while (!st_items->empty())
+  {
     /* code */
     ItemFile *item = st_items->top();
-    if (item != nullptr) {
+    if (item != nullptr)
+    {
       g_list_store_append(store, item);
     }
     st_items->pop();
@@ -78,7 +84,8 @@ ContentBox::~ContentBox() {}
 GtkWidget *ContentBox::get_content_items() { return content; }
 
 void ContentBox::on_checkbutton_toggled(GtkCheckButton *check_button,
-                                        gpointer user_data) {
+                                        gpointer user_data)
+{
   gboolean active = gtk_check_button_get_active(check_button);
   ItemFile *item = (ItemFile *)user_data;
   if (active)
@@ -90,8 +97,10 @@ void ContentBox::on_checkbutton_toggled(GtkCheckButton *check_button,
 bool ContentBox::get_status() { return status; }
 void ContentBox::set_status(bool _status) { status = _status; }
 
-void ContentBox::set_id_start_hb(GtkWidget *start_btn, gulong id) {
-  if (id != 0) {
+void ContentBox::set_id_start_hb(GtkWidget *start_btn, gulong id)
+{
+  if (id != 0)
+  {
     g_signal_handler_disconnect(start_btn, id);
   }
   id_start_hb =
@@ -102,11 +111,13 @@ void ContentBox::set_id_start_hb(GtkWidget *start_btn, gulong id) {
 
 gulong ContentBox::get_id_start_hb() { return id_start_hb; }
 
-void ContentBox::on_clicked_start_header_bar(GtkWidget *button, gpointer data) {
+void ContentBox::on_clicked_start_header_bar(GtkWidget *button, gpointer data)
+{
   auto my_obj = static_cast<ContentBox *>(data); // catch gpointer
   GtkWidget *grid = my_obj->get_content_items();
 
-  if (grid == nullptr) {
+  if (grid == nullptr)
+  {
     return;
   }
 
@@ -121,9 +132,13 @@ void ContentBox::on_clicked_start_header_bar(GtkWidget *button, gpointer data) {
   // GListStore *list_store = G_LIST_STORE(model);
   guint n_items = g_list_model_get_n_items(model);
 
-  if (n_items > 0) {
-      auto win = std::make_shared<SettingWin>(GTK_WINDOW(my_obj->get_parent()), G_LIST_STORE(model));
-    for (guint i = 0; i < n_items; ++i) {
+  if (n_items > 0)
+  {
+    my_obj->set_setting_win(GTK_WINDOW(my_obj->get_parent()), G_LIST_STORE(model));
+
+    g_print("se paso \n");
+    for (guint i = 0; i < n_items; ++i)
+    {
       gpointer item = g_list_model_get_item(model, i);
       ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
       GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
@@ -138,3 +153,15 @@ void ContentBox::on_clicked_start_header_bar(GtkWidget *button, gpointer data) {
 
 GtkWidget *ContentBox::get_select_button() { return hb_select; }
 GtkWidget *ContentBox::get_parent() { return parent; }
+
+void ContentBox::set_setting_win(GtkWindow *parent, GListStore *list)
+{
+  setting_win.reset();
+  setting_win = std::make_shared<SettingWin>(parent, list);
+  setting_win->show();
+}
+
+std::shared_ptr<SettingWin> ContentBox::get_setting_win()
+{
+  return setting_win;
+}

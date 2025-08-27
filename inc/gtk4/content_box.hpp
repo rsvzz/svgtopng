@@ -3,6 +3,8 @@
 #include <gtk-4.0/gtk/gtk.h>
 #include <iostream>
 #include <stack>
+#include "setting_win.hpp"
+#include <memory>
 
 extern "C" {
     #include "c_model/item_file.h"
@@ -14,7 +16,7 @@ private:
   GtkWidget *content, *hb_select, *parent;
   bool status;
   gulong id_start_hb;
-
+  std::shared_ptr<SettingWin> setting_win;
 public:
 /// @brief ctor
 /// @param stack<ItemFiles*>* items
@@ -33,4 +35,8 @@ public:
   void set_status(bool);
   bool get_status();
   GtkWidget* get_parent();
+
+  void set_setting_win(GtkWindow*, GListStore*);
+  std::shared_ptr<SettingWin> get_setting_win();
+
 };
