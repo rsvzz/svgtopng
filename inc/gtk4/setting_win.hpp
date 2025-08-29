@@ -22,4 +22,8 @@ public:
     int get_height();
 
     GtkWindow* get_window();
+    GListStore *get_list_items();
+
+    void set_pg_status(gboolean);
+    GtkWidget *get_pg_status();
 };

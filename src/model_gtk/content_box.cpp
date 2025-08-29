@@ -135,16 +135,6 @@ void ContentBox::on_clicked_start_header_bar(GtkWidget *button, gpointer data)
   if (n_items > 0)
   {
     my_obj->set_setting_win(GTK_WINDOW(my_obj->get_parent()), G_LIST_STORE(model));
-
-    g_print("se paso \n");
-    for (guint i = 0; i < n_items; ++i)
-    {
-      gpointer item = g_list_model_get_item(model, i);
-      ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
-      GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
-      gtk_check_button_set_active(checkbutton, FALSE);
-    }
-
     gtk_button_set_icon_name(GTK_BUTTON(my_obj->get_select_button()),
                              "checkbox-checked-symbolic");
     my_obj->set_status(TRUE);
