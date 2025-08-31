@@ -1,4 +1,6 @@
 #include "../../inc/gtk4/setting_win.hpp"
+#include <pango-1.0/pango/pango.h>
+#include "../../inc/model/convert_file.hpp"
 extern "C"
 {
 #include "../../inc/gtk4/c_model/item_file.h"
@@ -14,10 +16,10 @@ void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
   auto setting = static_cast<SettingWin *>(data);
   GtkWidget *width_entry = setting->get_entry_wigth();
   GtkWidget *height_entry = setting->get_entry_height();
-
-  if (width_entry != nullptr && height_entry != nullptr)
+  GtkWidget *lbl_path = setting->get_lbl_path();
+  string path(gtk_label_get_text(GTK_LABEL(lbl_path)));
+  if (width_entry != nullptr && height_entry != nullptr && path.length() > 0)
   {
-
     GtkEntryBuffer *buffer_w = gtk_entry_get_buffer(GTK_ENTRY(width_entry));
     GtkEntryBuffer *buffer_h = gtk_entry_get_buffer(GTK_ENTRY(height_entry));
 
@@ -31,41 +33,79 @@ void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
     {
       GListModel *model = G_LIST_MODEL(setting->get_list_items());
       guint n_items = g_list_model_get_n_items(model);
-
+      float run_update = n_items * 0.05;
       if (n_items > 0)
       {
         auto pg_status = setting->get_pg_status();
+        auto convert = std::make_shared<ConvertFile>(path, setting->get_width(), setting->get_height());
+
         gtk_widget_set_visible(pg_status, TRUE);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), 0.5);
+
         gtk_progress_bar_set_text(GTK_PROGRESS_BAR(pg_status), "Londing Convert Files .SVG to .PNG");
         gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(pg_status), TRUE);
 
-        gtk_widget_queue_draw(setting->get_pg_status());
+        // gtk_widget_queue_draw(setting->get_pg_status()); //update GtkWidget manual
+        float update = run_update;
         for (guint i = 0; i < n_items; ++i)
         {
           gpointer item = g_list_model_get_item(model, i);
           ItemFile *my_item = (ItemFile *)(item); // o cast GObject from C
           GtkCheckButton *checkbutton = item_file_get_check_button(my_item);
+
           if (item_file_get_check(my_item) == ACTIVE)
           {
-
+            string p_file(item_file_get_path(my_item));
+            // g_print("path cv: %s \n", p_file.c_str());
+            convert->convert_files_to(p_file);
             gtk_check_button_set_active(checkbutton, FALSE);
+            if (i > update)
+            {
+             
+              //g_print("update : %d \n", update);
+              gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), update);
+               update += run_update;
+            }
           }
+           gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), 1);
         }
+        convert.reset();
       }
       // gtk_window_close(setting->get_window());
     }
   }
+}
 
-  // GtkEntryBuffer *buffer_h = gtk_entry_get_buffer(setting->get_entry_height());
-  /*int width =
-      std::atoi(std::string(gtk_entry_buffer_get_text(buffer_w)).c_str());
-  int heigth = std::atoi(gtk_entry_buffer_get_text(buffer_h));
-  setting->set_width(width);
-  setting->set_height(heigth);
-  g_print("width : %d, height : %d \n", setting->get_width(),
-          setting->get_height());
-          */
+static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointer data)
+{
+  GError *error = nullptr;
+  GFile *folder = gtk_file_dialog_select_folder_finish(dialog, res, &error);
+
+  if (folder != nullptr)
+  {
+
+    gchar *path = g_file_get_path(folder);
+    auto my_obj = static_cast<SettingWin *>(data);
+    GtkWidget *lbl_path = my_obj->get_lbl_path();
+    gtk_label_set_text(GTK_LABEL(lbl_path), path);
+    gtk_label_set_ellipsize(GTK_LABEL(lbl_path), PANGO_ELLIPSIZE_START);
+    g_free(path);
+    g_object_unref(folder);
+  }
+  else
+  {
+    g_warning("Error al seleccionar carpeta: %s", error->message);
+    g_error_free(error);
+  }
+}
+
+void SettingWin::on_clicked_button_find(GtkWidget *button, gpointer data)
+{
+  auto my_obj = static_cast<SettingWin *>(data);
+  if (GTK_IS_WINDOW(my_obj->get_parent()))
+  {
+    GtkFileDialog *dialog = gtk_file_dialog_new();
+    gtk_file_dialog_select_folder(GTK_FILE_DIALOG(dialog), my_obj->get_parent(), nullptr, GAsyncReadyCallback(on_folder_selected), static_cast<gpointer>(my_obj));
+  }
 }
 
 SettingWin::SettingWin(GtkWindow *_parent, GListStore *_list) : width(0), height(0), parent(_parent), list(_list)
@@ -75,11 +115,12 @@ SettingWin::SettingWin(GtkWindow *_parent, GListStore *_list) : width(0), height
   gtk_window_set_transient_for(GTK_WINDOW(setting), parent);
   gtk_window_set_modal(GTK_WINDOW(setting), true);
 
-  GtkWidget *path = gtk_label_new(NULL);
+  lbl_path = gtk_label_new(NULL);
   GtkWidget *button_find = gtk_button_new_from_icon_name("document-open-symbolic");
   GtkWidget *button_exe = gtk_button_new_from_icon_name("selection-mode-symbolic");
 
   g_signal_connect(button_exe, "clicked", G_CALLBACK(&SettingWin::on_clicked_button_save), static_cast<gpointer>(this));
+  g_signal_connect(button_find, "clicked", G_CALLBACK(&SettingWin::on_clicked_button_find), static_cast<gpointer>(this));
 
   entry_w = gtk_entry_new();
   entry_h = gtk_entry_new();
@@ -105,7 +146,7 @@ SettingWin::SettingWin(GtkWindow *_parent, GListStore *_list) : width(0), height
   gtk_grid_attach(GTK_GRID(grid), label_x, 1, 0, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), entry_h, 2, 0, 1, 1);
 
-  gtk_grid_attach(GTK_GRID(grid), path, 0, 1, 2, 1);
+  gtk_grid_attach(GTK_GRID(grid), lbl_path, 0, 1, 2, 1);
   /// | -  - | 2 |
   gtk_grid_attach(GTK_GRID(grid), button_find, 2, 1, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), button_exe, 2, 2, 1, 1);
@@ -115,16 +156,12 @@ SettingWin::SettingWin(GtkWindow *_parent, GListStore *_list) : width(0), height
   gtk_widget_set_halign(button_find, GTK_ALIGN_END);
   gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
   gtk_grid_set_column_spacing(GTK_GRID(grid), 5);
-  // gtk_box_append(GTK_BOX(box_w_h), entry_w);
-  // gtk_box_append(GTK_BOX(box_w_h), label_x);
-  // gtk_box_append(GTK_BOX(box_w_h), entry_h);
-  //  gtk_widget_set_vexpand_set(box, FALSE);
-  //  gtk_widget_set_hexpand_set(box, FALSE);
 
   gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
   // gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
+
   gtk_box_append(GTK_BOX(box), grid);
-  // gtk_box_append(GTK_BOX(box), pg_status);
+
   gtk_widget_set_margin_top(pg_status, 50);
   gtk_widget_set_margin_start(box, 10);
   gtk_widget_set_margin_end(box, 10);
@@ -161,3 +198,6 @@ void SettingWin::set_pg_status(gboolean status)
 }
 
 GtkWidget *SettingWin::get_pg_status() { return pg_status; }
+
+GtkWindow *SettingWin::get_parent() { return parent; }
+GtkWidget *SettingWin::get_lbl_path() { return lbl_path; }

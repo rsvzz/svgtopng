@@ -20,3 +20,8 @@ void svg_draw_set_draw_width_and_height(SvgDraw *self, int w, int h);
 GdkTexture *svg_draw_get_file_svg_to_draw(SvgDraw *self, const char*);
 int svg_drag_get_width(SvgDraw* self);
 int svg_drag_get_height(SvgDraw* self);
+/// @brief convert svg to png
+/// @param  self
+/// @param  Path file
+/// @param  Path new file
+void svg_draw_file_svg_to_png(SvgDraw*, const char*, const char*);

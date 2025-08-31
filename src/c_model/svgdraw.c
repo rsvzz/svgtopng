@@ -42,7 +42,6 @@ static void svg_draw_dispose(GObject *object)
         */
 
     G_OBJECT_CLASS(svg_draw_parent_class)->dispose(object);
-    g_print("svg_dra item dispose\n");
 }
 
 static void svg_draw_finalize(GObject *object)
@@ -80,6 +79,22 @@ void svg_draw_set_draw_width_and_height(SvgDraw *self, int w, int h)
     self->w = w;
 }
 
+void svg_draw_file_svg_to_png(SvgDraw *self, const char* path, const char* p_png){
+     cairo_surface_t *surface = create_surface_for_file_svg(path, self->w, self->h);
+     gchar *name_ext = g_path_get_basename(path);
+    gchar *extention = g_strrstr(name_ext, ".");
+    gchar *filename= g_strndup(name_ext, extention - name_ext);
+    gchar *new_name = g_build_filename(p_png, g_strconcat(filename,".png", NULL), NULL);
+     cairo_status_t  st = cairo_surface_write_to_png(surface, new_name);
+     cairo_surface_destroy(surface);
+    
+     //g_free(name_ext);
+     //g_free(extention);
+     //g_free(filename);
+     //g_free(new_name);
+
+}
+
 GdkTexture *svg_draw_get_file_svg_to_draw(SvgDraw *self, const char *path)
 {
     cairo_surface_t *surface = create_surface_for_file_svg(path, self->w, self->h);
@@ -96,6 +111,7 @@ GdkTexture *svg_draw_get_file_svg_to_draw(SvgDraw *self, const char *path)
 
     return self->texture;
 }
+
 
 GdkTexture *create_texture_from_surface(cairo_surface_t *surface)
 {
@@ -138,6 +154,7 @@ cairo_surface_t *create_surface_for_file_svg(const char *path, int width, int he
     // cairo_paint(cr);
 
     rsvg_handle_render_document(handle, cr, &viewport, &error);
+    
     g_object_unref(handle);
     handle = NULL;
 
