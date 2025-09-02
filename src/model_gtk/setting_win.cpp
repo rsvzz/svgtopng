@@ -8,11 +8,16 @@ extern "C"
 #include <iostream>
 #include <string>
 #include <memory>
+#include <thread>
 
+struct PGChanged{
+  GtkProgressBar *status;
+  double increment;
+};
 using namespace std;
-
-void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
+void create_new_files_png(gpointer data)
 {
+
   auto setting = static_cast<SettingWin *>(data);
   GtkWidget *width_entry = setting->get_entry_wigth();
   GtkWidget *height_entry = setting->get_entry_height();
@@ -33,7 +38,8 @@ void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
     {
       GListModel *model = G_LIST_MODEL(setting->get_list_items());
       guint n_items = g_list_model_get_n_items(model);
-      float run_update = n_items * 0.05;
+      double run_update = n_items * 0.05;
+
       if (n_items > 0)
       {
         auto pg_status = setting->get_pg_status();
@@ -45,7 +51,8 @@ void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
         gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(pg_status), TRUE);
 
         // gtk_widget_queue_draw(setting->get_pg_status()); //update GtkWidget manual
-        float update = run_update;
+        double update = 0;
+        int count = run_update;
         for (guint i = 0; i < n_items; ++i)
         {
           gpointer item = g_list_model_get_item(model, i);
@@ -58,21 +65,41 @@ void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
             // g_print("path cv: %s \n", p_file.c_str());
             convert->convert_files_to(p_file);
             gtk_check_button_set_active(checkbutton, FALSE);
-            if (i > update)
+            if ((i + 1) > count)
             {
-             
-              //g_print("update : %d \n", update);
-              gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), update);
-               update += run_update;
+              if (run_update < 1)
+                update += run_update; // % < 1
+              else
+              {
+                count += run_update;
+                update += 0.05; // % > 1
+              }
+
+              g_print("update : %f count : %f \n", update, count);
+              g_main_context_invoke(NULL, [](gpointer upd_data){
+                PGChanged *tap = static_cast<PGChanged*>(upd_data);
+                gtk_progress_bar_set_fraction(tap->status, tap->increment);
+                delete tap;
+                return G_SOURCE_REMOVE;
+              }, new PGChanged{ GTK_PROGRESS_BAR(pg_status), update});
+              //std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
           }
-           gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), 1);
+          //gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pg_status), 1);
         }
+        gtk_progress_bar_set_text(GTK_PROGRESS_BAR(pg_status), "Complete Convert Files .SVG to .PNG");
+
         convert.reset();
       }
       // gtk_window_close(setting->get_window());
     }
   }
+}
+
+void SettingWin::on_clicked_button_save(GtkWidget *button, gpointer data)
+{
+   std::thread thread(create_new_files_png, data);
+   thread.detach();
 }
 
 static void on_folder_selected(GtkFileDialog *dialog, GAsyncResult *res, gpointer data)
