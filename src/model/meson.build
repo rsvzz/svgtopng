@@ -1,5 +1,5 @@
 inc_src = include_directories('../../src', '../../inc')
-src_files = files('convert_file.cpp')
+src_files = files('convert_file.cpp', 'changed_pg.cpp')
 
 gobj_dep = dependency('gobject-2.0')
 librsvg_dep = dependency('librsvg-2.0')
